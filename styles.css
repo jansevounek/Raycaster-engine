@@ -1,0 +1,29 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+}
+.map-tile {
+    height: 39px;
+    width: 39px;
+    border-color: black;
+    border-width: 1px;
+}
+.row {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+}
+.player {
+    position: absolute;
+    background-color: red;
+    z-index: 50;
+    top: 50px;
+    left: 50px;
+    width: 15px;
+    height: 15px;
+}
+.rays {
+    position: absolute;
+    z-index: 40;
+}
