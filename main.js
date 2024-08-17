@@ -46,6 +46,12 @@ let player_angle = 0
 let obstacle_list = []
 let rayAngle = 0
 
+async function setup() {
+    generateMap()
+    resizeCanvas()
+    setupGame()
+}
+
 window.addEventListener('resize', resizeCanvas);
 document.addEventListener('keydown', (event) => {
     if (event.key in KEYS) {
@@ -58,13 +64,6 @@ document.addEventListener('keyup', (event) => {
         KEYS[event.key] = false;
     }
 });
-
-
-function setup() {
-    generateMap()
-    resizeCanvas()
-    setupGame()
-}
 
 function generateMap(){
     for(x = 0; x < MAP.length; x++){
