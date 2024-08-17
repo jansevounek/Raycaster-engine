@@ -5,23 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">  
     <link rel="stylesheet" href="styles.css">
-    <title>Game</title>
+    <title>Document</title>
 </head>
 <body>
-    <canvas id="rays" class="rays"></canvas>
-    <div class="map-container" id="map-container">
-        <div class="player" id="player"></div>
+    <div class="w-[100%] text-center mx-2">
+        <h1 class="text-2xl">Welcome to my portfolio</h1>
+        <a href="mobile.html" class="no-underline inline-block lg:hidden mt-10 text-blue-500">Mobile version</a>
+        <a href="desktop.html" class="no-underline hidden lg:inline-block mt-10 text-blue-500">Desktop version</a>
+        <p class="mt-10">This portfolio is in the form of a raycaster "game"</p>
+        <p class="text-red-600 mt-10">Disclaimer: the whole thing uses quite a bit of ram so open with this in mind</p>
     </div>
-    <div class="game-container" id="game-container">
-        <div class="first-row">
-
-        </div>
-        <div class="second-row">
-
-        </div>
-
-        <canvas id="viewCanvas"></canvas>
-    </div>
-    <script src="main.js"></script>
 </body>
 </html>

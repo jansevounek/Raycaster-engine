@@ -35,11 +35,11 @@ const KEYS = {
     d: false
 }
 const INDICATIONLINE = 40
-const CEILING_COLOR = '#1F487E'
-const FLOOR_COLOR = '#605F5E'
-const WALL_COLOR = '#FB3640'
+const CEILING_COLOR = '#414288'
+const FLOOR_COLOR = '#5FB49C'
 
 // variables
+let wallBaseColor = { r: 104, g: 45, b: 99 };
 let player_top = 50
 let player_left = 50
 let player_angle = 0
@@ -89,7 +89,7 @@ function generateMap(){
 function setupGame() {
     width = MAP_CONTAINER.getBoundingClientRect().width
     GAME_CONTAINER.style.left = width + "px"
-    GAME_CONTAINER.style.width = window.innerWidth - width + "px"
+    GAME_CONTAINER.style.width = window.innerWidth - width - 20 + "px"
 
     VIEW_CANVAS.width = GAME_CONTAINER.getBoundingClientRect().width - 3
     VIEW_CANVAS.height = GAME_CONTAINER.getBoundingClientRect().height
@@ -107,10 +107,10 @@ function movePlayer() {
         new_player_top -= Math.cos(player_angle) * PLAYER_SPEED
     }
     if (KEYS.a) {
-        player_angle += 0.02
+        player_angle -= 0.02
     }
     if (KEYS.d) {
-        player_angle -= 0.02
+        player_angle += 0.02
     }
 
     const playerRect = {
@@ -203,7 +203,9 @@ function drawTo3d(closestIntersection, playerCenterX, playerCenterY, ctx, i) {
 
     const shade = Math.max(50, 255 - (correctedDistance / MAX_VIEW_DISTANCE) * 255);
 
-    ctx.fillStyle = `rgb(${shade * 0.7}, ${shade * 0.3}, ${shade * 0.3})`;
+    const wallColor = `rgb(${(wallBaseColor.r * shade) / 255}, ${(wallBaseColor.g * shade) / 255}, ${(wallBaseColor.b * shade) / 255})`;
+
+    ctx.fillStyle = wallColor;
     ctx.fillRect(i * (VIEW_CANVAS.width / RAYS_COUNT) + MAP_CONTAINER.getBoundingClientRect().width, (VIEW_CANVAS.height - sliceHeight) / 2, VIEW_CANVAS.width / RAYS_COUNT, sliceHeight);
 }
 
@@ -267,6 +269,9 @@ function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
 function resizeCanvas() {
     CANVAS.width = window.innerWidth - 60;
     CANVAS.height = window.innerHeight - 60;
+
+    VIEW_CANVAS.width = GAME_CONTAINER.getBoundingClientRect().width - 3
+    VIEW_CANVAS.height = GAME_CONTAINER.getBoundingClientRect().height
 }
 
 requestAnimationFrame(movePlayer);
