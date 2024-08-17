@@ -1,22 +1,32 @@
-console.log("hello")
-
 // constants
-const CONTAINER = document.getElementById("container")
+const MAP_CONTAINER = document.getElementById("map-container")
+const GAME_CONTAINER = document.getElementById("game-container")
 const PLAYER = document.getElementById("player")
 const CANVAS = document.getElementById("rays")
+const VIEW_CANVAS = document.getElementById("viewCanvas")
 const TILESIZE = 40
+const MAX_VIEW_DISTANCE = 800
 const MAP = [
-    "#############",
-    "#.......#...#",
-    "#.#.....#...#",
-    "#...........#",
-    "#.....#######",
-    "#...........#",
-    "#############"
+    "##########",
+    "#........#",
+    "#.....####",
+    "#........#",
+    "#.....####",
+    "#........#",
+    "####.....#",
+    "#........#",
+    "####.....#",
+    "#........#",
+    "#.....####",
+    "#........#",
+    "#.....####",
+    "#..#.....#",
+    "#..#.....#",
+    "##########"
 ]
-const PLAYER_SPEED = 2
+const PLAYER_SPEED = 1
 const FOV = Math.PI / 3
-const RAYS_COUNT = 30
+const RAYS_COUNT = 60
 const STEP_ANGLE = FOV / (RAYS_COUNT - 1)
 const KEYS = {
     w: false,
@@ -25,6 +35,9 @@ const KEYS = {
     d: false
 }
 const INDICATIONLINE = 40
+const CEILING_COLOR = '#1F487E'
+const FLOOR_COLOR = '#605F5E'
+const WALL_COLOR = '#FB3640'
 
 // variables
 let player_top = 50
@@ -50,6 +63,7 @@ document.addEventListener('keyup', (event) => {
 function setup() {
     generateMap()
     resizeCanvas()
+    setupGame()
 }
 
 function generateMap(){
@@ -57,7 +71,7 @@ function generateMap(){
         let row = document.createElement("div")
         row.className = "row"
         row.id = "row-" + x
-        CONTAINER.appendChild(row)
+        MAP_CONTAINER.appendChild(row)
         for(y = 0; y < MAP[x].length; y++){
             let tile = document.createElement("div")
             if (MAP[x].charAt(y) == "#"){
@@ -71,8 +85,15 @@ function generateMap(){
             row.appendChild(tile)
         }
     }
-    CANVAS.style.height = CONTAINER.style.height
-    CANVAS.style.width = CONTAINER.style.width
+}
+
+function setupGame() {
+    width = MAP_CONTAINER.getBoundingClientRect().width
+    GAME_CONTAINER.style.left = width + "px"
+    GAME_CONTAINER.style.width = window.innerWidth - width + "px"
+
+    VIEW_CANVAS.width = GAME_CONTAINER.getBoundingClientRect().width - 3
+    VIEW_CANVAS.height = GAME_CONTAINER.getBoundingClientRect().height
 }
 
 function movePlayer() {
@@ -82,11 +103,15 @@ function movePlayer() {
         new_player_left += Math.sin(player_angle) * PLAYER_SPEED
         new_player_top += Math.cos(player_angle) * PLAYER_SPEED
     }
+    if (KEYS.s) {
+        new_player_left -= Math.sin(player_angle) * PLAYER_SPEED
+        new_player_top -= Math.cos(player_angle) * PLAYER_SPEED
+    }
     if (KEYS.a) {
-        player_angle += 0.05
+        player_angle += 0.02
     }
     if (KEYS.d) {
-        player_angle -= 0.05
+        player_angle -= 0.02
     }
 
     const playerRect = {
@@ -150,6 +175,8 @@ function drawRays(player_top, player_left) {
     ctx.strokeStyle = "red"
     ctx.lineWidth = 1
 
+    drawOthers(ctx)
+
     for(let i = 0; i < RAYS_COUNT; i++){
         ctx.moveTo(playerCenterX, playerCenterY)
         rayAngle = player_angle - FOV / 2 + i * STEP_ANGLE;
@@ -157,14 +184,36 @@ function drawRays(player_top, player_left) {
         const closestIntersection = findClosestIntersection(playerCenterX, playerCenterY);
 
         if (closestIntersection) {
-            ctx.lineTo(closestIntersection.x, closestIntersection.y);
-        } else {
-            const rayEndX = playerCenterX + 1000 * Math.cos(rayAngle);
-            const rayEndY = playerCenterY + 1000 * Math.sin(rayAngle);
-            ctx.lineTo(rayEndX, rayEndY);
+            drawToMap(closestIntersection, ctx);
+            drawTo3d(closestIntersection, playerCenterX, playerCenterY, ctx, i)
         }
-        ctx.stroke()
     }
+}
+
+function drawToMap(closestIntersection, ctx) {
+    ctx.lineTo(closestIntersection.x, closestIntersection.y);
+    ctx.stroke()
+}
+
+function drawTo3d(closestIntersection, playerCenterX, playerCenterY, ctx, i) {
+    const distance = Math.sqrt(Math.pow(closestIntersection.x - playerCenterX, 2) + Math.pow(closestIntersection.y - playerCenterY, 2));
+
+    const correctedDistance = distance * Math.cos(rayAngle - player_angle);
+
+    const sliceHeight = Math.min((MAX_VIEW_DISTANCE * 150) / correctedDistance, MAX_VIEW_DISTANCE);
+
+    const shade = Math.max(50, 255 - (correctedDistance / MAX_VIEW_DISTANCE) * 255);
+
+    ctx.fillStyle = `rgb(${shade * 0.7}, ${shade * 0.3}, ${shade * 0.3})`;
+    ctx.fillRect(i * (VIEW_CANVAS.width / RAYS_COUNT) + MAP_CONTAINER.getBoundingClientRect().width, (VIEW_CANVAS.height - sliceHeight) / 2, VIEW_CANVAS.width / RAYS_COUNT, sliceHeight);
+}
+
+function drawOthers(ctx) {
+    ctx.fillStyle = CEILING_COLOR
+    ctx.fillRect(MAP_CONTAINER.getBoundingClientRect().width, 0, VIEW_CANVAS.width, VIEW_CANVAS.height / 2)
+    
+    ctx.fillStyle = FLOOR_COLOR
+    ctx.fillRect(MAP_CONTAINER.getBoundingClientRect().width, VIEW_CANVAS.height / 2, VIEW_CANVAS.width, VIEW_CANVAS.height / 2)
 }
 
 function findClosestIntersection(playerX, playerY) {
@@ -217,10 +266,9 @@ function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
 }
 
 function resizeCanvas() {
-    CANVAS.width = window.innerWidth;
-    CANVAS.height = window.innerHeight;
+    CANVAS.width = window.innerWidth - 60;
+    CANVAS.height = window.innerHeight - 60;
 }
 
 requestAnimationFrame(movePlayer);
 setup()
-
