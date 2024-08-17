@@ -24,7 +24,7 @@ const MAP = [
     "#..#.....#",
     "##########"
 ]
-const PLAYER_SPEED = 1
+const PLAYER_SPEED = 2
 const FOV = Math.PI / 3
 const RAYS_COUNT = 60
 const STEP_ANGLE = FOV / (RAYS_COUNT - 1)
@@ -108,10 +108,10 @@ function movePlayer() {
         new_player_top -= Math.cos(player_angle) * PLAYER_SPEED
     }
     if (KEYS.a) {
-        player_angle += 0.02
+        player_angle += 0.05
     }
     if (KEYS.d) {
-        player_angle -= 0.02
+        player_angle -= 0.05
     }
 
     const playerRect = {
