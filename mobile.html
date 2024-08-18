@@ -9,11 +9,21 @@
 </head>
 <body>
     <div class="mobile-container w-screen">
+        <div class="controller-container">
+            <div class="controlls-container">
+                <button class="controlls-button" id="forward">↑</button>
+            </div>
+            <div class="controlls-container">
+                <button class="controlls-button" id="left">←</button>
+                <button class="controlls-button" id="back">↓</button>
+                <button class="controlls-button" id="right">→</button>
+            </div>
+        </div>
         <canvas id="rays" class="mobile-rays"></canvas>
         <div class="mobile-map-container w-screen" id="map-container">
             <div class="mobile-player" id="player"a></div>
         </div>
-        <div class="mobile-game-container w-screen" id="game-container">
+        <div class="mobile-game-container w-screen h-screen" id="game-container">
             <canvas id="viewCanvas"></canvas>
         </div>
         <script src="mobile.js"></script>

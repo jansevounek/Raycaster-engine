@@ -68,3 +68,21 @@
     flex-direction: column;
     height: 300px;
 }
+.controller-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    bottom: 0;
+}
+.controlls-container {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.controlls-button {
+    z-index: 50;
+    height: 40px;
+    width: 40px;
+}

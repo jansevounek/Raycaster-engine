@@ -4,6 +4,10 @@ const GAME_CONTAINER = document.getElementById("game-container")
 const PLAYER = document.getElementById("player")
 const CANVAS = document.getElementById("rays")
 const VIEW_CANVAS = document.getElementById("viewCanvas")
+const FORWARD_BUTTON = document.getElementById("forward")
+const LEFT_BUTTON = document.getElementById("left")
+const BACK_BUTTON = document.getElementById("back")
+const RIGHT_BUTTON = document.getElementById("right")
 const TILESIZE = 20
 const MAX_VIEW_DISTANCE = 800
 const MAP = [
@@ -24,16 +28,16 @@ const MAP = [
     "#..#.....#",
     "##########"
 ]
-const PLAYER_SPEED = 1
+const PLAYER_SPEED = 0.6
 const FOV = Math.PI / 3
-const RAYS_COUNT = 40
+const RAYS_COUNT = 60
 const STEP_ANGLE = FOV / (RAYS_COUNT - 1)
-const KEYS = {
-    w: false,
-    a: false,
-    s: false,
-    d: false
-}
+const CONTROLS = {
+    rotateLeft: false,
+    rotateRight: false,
+    moveForward: false,
+    moveBackward: false
+};
 const INDICATIONLINE = 40
 const CEILING_COLOR = '#414288'
 const FLOOR_COLOR = '#5FB49C'
@@ -53,17 +57,17 @@ async function setup() {
 }
 
 window.addEventListener('resize', resizeCanvas);
-document.addEventListener('keydown', (event) => {
-    if (event.key in KEYS) {
-        KEYS[event.key] = true;
-    }
-});
 
-document.addEventListener('keyup', (event) => {
-    if (event.key in KEYS) {
-        KEYS[event.key] = false;
-    }
-});
+LEFT_BUTTON.addEventListener('touchstart', () => CONTROLS.rotateLeft = true);
+RIGHT_BUTTON.addEventListener('touchstart', () => CONTROLS.rotateRight = true);
+FORWARD_BUTTON.addEventListener('touchstart', () => CONTROLS.moveForward = true);
+BACK_BUTTON.addEventListener('touchstart', () => CONTROLS.moveBackward = true);
+
+LEFT_BUTTON.addEventListener('touchend', () => CONTROLS.rotateLeft = false);
+RIGHT_BUTTON.addEventListener('touchend', () => CONTROLS.rotateRight = false);
+FORWARD_BUTTON.addEventListener('touchend', () => CONTROLS.moveForward = false);
+BACK_BUTTON.addEventListener('touchend', () => CONTROLS.moveBackward = false);
+
 
 function generateMap(){
     for(x = 0; x < MAP.length; x++){
@@ -94,18 +98,21 @@ function setupGame() {
 function movePlayer() {
     new_player_top = player_top
     new_player_left = player_left
-    if (KEYS.w) {
+
+    console.log(CONTROLS)
+
+    if (CONTROLS.moveForward) {
         new_player_left += Math.sin(player_angle) * PLAYER_SPEED
         new_player_top += Math.cos(player_angle) * PLAYER_SPEED
     }
-    if (KEYS.s) {
+    if (CONTROLS.moveBackward) {
         new_player_left -= Math.sin(player_angle) * PLAYER_SPEED
         new_player_top -= Math.cos(player_angle) * PLAYER_SPEED
     }
-    if (KEYS.a) {
+    if (CONTROLS.rotateLeft) {
         player_angle -= 0.02
     }
-    if (KEYS.d) {
+    if (CONTROLS.rotateRight) {
         player_angle += 0.02
     }
 
@@ -144,7 +151,6 @@ function movePlayer() {
         }
     })
 
-
     player_top = new_player_top
     player_left = new_player_left
     PLAYER.style.top = player_top + 'px';
@@ -170,7 +176,7 @@ function drawRays(player_top, player_left) {
     ctx.strokeStyle = "red"
     ctx.lineWidth = 1
 
-    drawOthers(ctx)
+    drawOthers()
 
     for(let i = 0; i < RAYS_COUNT; i++){
         ctx.moveTo(playerCenterX, playerCenterY)
@@ -180,7 +186,7 @@ function drawRays(player_top, player_left) {
 
         if (closestIntersection) {
             drawToMap(closestIntersection, ctx);
-            drawTo3d(closestIntersection, playerCenterX, playerCenterY, ctx, i)
+            drawTo3d(closestIntersection, playerCenterX, playerCenterY, i)
         }
     }
 }
@@ -190,26 +196,29 @@ function drawToMap(closestIntersection, ctx) {
     ctx.stroke()
 }
 
-function drawTo3d(closestIntersection, playerCenterX, playerCenterY, ctx, i) {
+function drawTo3d(closestIntersection, playerCenterX, playerCenterY, i) {
     const distance = Math.sqrt(Math.pow(closestIntersection.x - playerCenterX, 2) + Math.pow(closestIntersection.y - playerCenterY, 2));
+
+    ctx = VIEW_CANVAS.getContext("2d")
 
     const correctedDistance = distance * Math.cos(rayAngle - player_angle);
 
-    const sliceHeight = Math.min((MAX_VIEW_DISTANCE * 150) / correctedDistance, MAX_VIEW_DISTANCE);
+    const sliceHeight = Math.min((MAX_VIEW_DISTANCE * 20) / correctedDistance, MAX_VIEW_DISTANCE);
 
     const shade = Math.max(50, 255 - (correctedDistance / MAX_VIEW_DISTANCE) * 255);
 
     const wallColor = `rgb(${(wallBaseColor.r * shade) / 255}, ${(wallBaseColor.g * shade) / 255}, ${(wallBaseColor.b * shade) / 255})`;
 
     ctx.fillStyle = wallColor;
-    ctx.fillRect(i * (VIEW_CANVAS.width / RAYS_COUNT), (VIEW_CANVAS.height - sliceHeight) / 2 + MAP_CONTAINER.getBoundingClientRect().height, VIEW_CANVAS.width / RAYS_COUNT, sliceHeight);
+    ctx.fillRect(i * (VIEW_CANVAS.width / RAYS_COUNT), (VIEW_CANVAS.height - sliceHeight) / 2, VIEW_CANVAS.width / RAYS_COUNT, sliceHeight);
 }
 
-function drawOthers(ctx) {
+function drawOthers() {
+    ctx = VIEW_CANVAS.getContext("2d")
     ctx.fillStyle = CEILING_COLOR
-    ctx.fillRect(0, MAP_CONTAINER.getBoundingClientRect().height, VIEW_CANVAS.width, VIEW_CANVAS.height / 2)
+    ctx.fillRect(0, 0, VIEW_CANVAS.width, VIEW_CANVAS.height / 2)
     ctx.fillStyle = FLOOR_COLOR
-    ctx.fillRect(0, VIEW_CANVAS.height / 2 + MAP_CONTAINER.getBoundingClientRect().height, VIEW_CANVAS.width, VIEW_CANVAS.height / 2)
+    ctx.fillRect(0, VIEW_CANVAS.height / 2, VIEW_CANVAS.width, VIEW_CANVAS.height / 2)
 }
 
 function findClosestIntersection(playerX, playerY) {

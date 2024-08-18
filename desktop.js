@@ -199,7 +199,7 @@ function drawTo3d(closestIntersection, playerCenterX, playerCenterY, ctx, i) {
 
     const correctedDistance = distance * Math.cos(rayAngle - player_angle);
 
-    const sliceHeight = Math.min((MAX_VIEW_DISTANCE * 150) / correctedDistance, MAX_VIEW_DISTANCE);
+    const sliceHeight = Math.min((MAX_VIEW_DISTANCE * 75) / correctedDistance, MAX_VIEW_DISTANCE);
 
     const shade = Math.max(50, 255 - (correctedDistance / MAX_VIEW_DISTANCE) * 255);
 
