@@ -99,8 +99,6 @@ function movePlayer() {
     new_player_top = player_top
     new_player_left = player_left
 
-    console.log(CONTROLS)
-
     if (CONTROLS.moveForward) {
         new_player_left += Math.sin(player_angle) * PLAYER_SPEED
         new_player_top += Math.cos(player_angle) * PLAYER_SPEED
