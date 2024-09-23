@@ -26,7 +26,7 @@ const MAP = [
 ]
 const PLAYER_SPEED = 1
 const FOV = Math.PI / 3
-const RAYS_COUNT = 60
+const RAYS_COUNT = 80
 const STEP_ANGLE = FOV / (RAYS_COUNT - 1)
 const KEYS = {
     w: false,
