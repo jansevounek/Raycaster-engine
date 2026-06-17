@@ -45,19 +45,19 @@ let wallBaseColor = { r: 170, g: 103, b: 0 };
 const PORTALS_CONFIG = {
     'A': {
         color: { r: 204, g: 0, b: 11 },     // Red
-        url: "https://example.com/site-a",
+        url: "https://github.com/jansevounek/Learner",
         label: "Portal A",
         description: "My Learner application (my biggest project to date)."
     },
     'B': {
         color: { r: 0, g: 150, b: 255 },    // Light Blue
-        url: "https://example.com/site-b",
+        url: "https://github.com/jansevounek",
         label: "Portal B",
         description: "My github :]."
     },
     'C': {
         color: { r: 155, g: 48, b: 255 },   // Purple
-        url: "https://example.com/site-c",
+        url: "https://github.com/jansevounek/Raycaster-engine",
         label: "Portal C",
         description: "Repository of this very abomination \\ (^_^) /."
     }
