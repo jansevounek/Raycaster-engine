@@ -10,18 +10,18 @@ const MAP = [
     "##########",
     "#........#",
     "#.....####",
-    "#........#",
+    "#........A", // Portal A
     "#.....####",
     "#........#",
     "####.....#",
-    "#........#",
+    "#........#", 
     "####.....#",
-    "#........#",
+    "#........B", // Portal B
     "#.....####",
     "#........#",
     "#.....####",
     "#..#.....#",
-    "#..#.....#",
+    "#..#.....C", // Portal C
     "##########"
 ]
 const PLAYER_SPEED = 1
@@ -35,11 +35,35 @@ const KEYS = {
     d: false
 }
 const INDICATIONLINE = 40
-const CEILING_COLOR = '#414288'
-const FLOOR_COLOR = '#5FB49C'
+const CEILING_COLOR = '#0079ce'
+const FLOOR_COLOR = '#2e9500'
 
 // variables
-let wallBaseColor = { r: 104, g: 45, b: 99 };
+let wallBaseColor = { r: 170, g: 103, b: 0 };
+
+// --- PORTALS CONFIGURATION ---
+const PORTALS_CONFIG = {
+    'A': {
+        color: { r: 204, g: 0, b: 11 },     // Red
+        url: "https://example.com/site-a",
+        label: "Portal A",
+        description: "My Learner application (my biggest project to date)."
+    },
+    'B': {
+        color: { r: 0, g: 150, b: 255 },    // Light Blue
+        url: "https://example.com/site-b",
+        label: "Portal B",
+        description: "My github :]."
+    },
+    'C': {
+        color: { r: 155, g: 48, b: 255 },   // Purple
+        url: "https://example.com/site-c",
+        label: "Portal C",
+        description: "Repository of this very abomination \\ (^_^) /."
+    }
+};
+
+let hasRedirected = false;                  
 let player_top = 50
 let player_left = 50
 let player_angle = 0
@@ -50,6 +74,7 @@ async function setup() {
     generateMap()
     resizeCanvas()
     setupGame()
+    createLegend() // Creates the visual legend overlay on setup
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -66,15 +91,32 @@ document.addEventListener('keyup', (event) => {
 });
 
 function generateMap(){
-    for(x = 0; x < MAP.length; x++){
+    for(let x = 0; x < MAP.length; x++){
         let row = document.createElement("div")
         row.className = "row"
         row.id = "row-" + x
         MAP_CONTAINER.appendChild(row)
-        for(y = 0; y < MAP[x].length; y++){
+        for(let y = 0; y < MAP[x].length; y++){
             let tile = document.createElement("div")
-            if (MAP[x].charAt(y) == "#"){
-                tile.className = "map-tile bg-blue-600"
+            let char = MAP[x].charAt(y);
+            
+            if (char === "#" || PORTALS_CONFIG[char]) {
+                tile.dataset.type = char; 
+                
+                if (char === "#") {
+                    tile.className = "map-tile";
+                    tile.style.backgroundColor = `rgb(${wallBaseColor.r}, ${wallBaseColor.g}, ${wallBaseColor.b})`; 
+                } else {
+                    tile.className = "map-tile";
+                    const pColor = PORTALS_CONFIG[char].color;
+                    tile.style.backgroundColor = `rgb(${pColor.r}, ${pColor.g}, ${pColor.b})`; 
+                    tile.innerText = char; 
+                    tile.style.color = "#fff";
+                    tile.style.textAlign = "center";
+                    tile.style.fontSize = "12px";
+                    tile.style.lineHeight = "20px"; 
+                }
+                
                 tile.id = "block-" + x + "-" + y
                 obstacle_list.push(tile)
             } else {
@@ -86,8 +128,46 @@ function generateMap(){
     }
 }
 
+// --- REFINED: Appends safely to body to avoid blocking your game canvases ---
+function createLegend() {
+    let legendContainer = document.getElementById("portal-legend");
+    if (!legendContainer) {
+        legendContainer = document.createElement("div");
+        legendContainer.id = "portal-legend";
+        legendContainer.style.position = "absolute";
+        legendContainer.style.bottom = "10px";
+        legendContainer.style.left = "10px";
+        legendContainer.style.padding = "15px";
+        legendContainer.style.fontFamily = "sans-serif";
+        legendContainer.style.background = "rgba(34, 34, 34, 0.9)";
+        legendContainer.style.color = "#fff";
+        legendContainer.style.borderRadius = "8px";
+        legendContainer.style.zIndex = "100"; // Ensures it sits cleanly on top of backgrounds
+        legendContainer.style.boxShadow = "0 4px 6px rgba(0,0,0,0.3)";
+        document.body.appendChild(legendContainer); // Safely append directly to the body
+    }
+
+    legendContainer.innerHTML = "<h3 style='margin-top:0; margin-bottom:10px; font-size:16px; border-bottom:1px solid #444; padding-bottom:5px;'>Portal Destinations</h3>";
+    
+    for (let key in PORTALS_CONFIG) {
+        const portal = PORTALS_CONFIG[key];
+        const pColor = portal.color;
+
+        const entry = document.createElement("div");
+        entry.style.display = "flex";
+        entry.style.alignItems = "center";
+        entry.style.marginBottom = "8px";
+
+        entry.innerHTML = `
+            <div style="width: 22px; height: 22px; background-color: rgb(${pColor.r}, ${pColor.g}, ${pColor.b}); border-radius: 4px; margin-right: 12px; display: inline-block; text-align: center; color: white; font-weight: bold; font-size: 13px; line-height: 22px;">${key}</div>
+            <div style="font-size: 14px;"><strong>${portal.label}</strong>: ${portal.description}</div>
+        `;
+        legendContainer.appendChild(entry);
+    }
+}
+
 function setupGame() {
-    width = MAP_CONTAINER.getBoundingClientRect().width
+    let width = MAP_CONTAINER.getBoundingClientRect().width
     GAME_CONTAINER.style.left = width + "px"
     GAME_CONTAINER.style.width = window.innerWidth - width - 20 + "px"
 
@@ -96,8 +176,8 @@ function setupGame() {
 }
 
 function movePlayer() {
-    new_player_top = player_top
-    new_player_left = player_left
+    let new_player_top = player_top
+    let new_player_left = player_left
     if (KEYS.w) {
         new_player_left += Math.sin(player_angle) * PLAYER_SPEED
         new_player_top += Math.cos(player_angle) * PLAYER_SPEED
@@ -137,17 +217,16 @@ function movePlayer() {
             const minOver = Math.min(overlapT, overlapB, overlapL, overlapR)
     
             if (minOver === overlapT) {
-                new_player_top = obstacleRect.top - player.offsetHeight; 
+                new_player_top = obstacleRect.top - PLAYER.offsetHeight; 
             } else if (minOver === overlapB) {
                 new_player_top = obstacleRect.bottom; 
             } else if (minOver === overlapL) {
-                new_player_left = obstacleRect.left - player.offsetWidth; 
+                new_player_left = obstacleRect.left - PLAYER.offsetWidth; 
             } else if (minOver === overlapR) {
                 new_player_left = obstacleRect.right; 
             }
         }
     })
-
 
     player_top = new_player_top
     player_left = new_player_left
@@ -155,22 +234,53 @@ function movePlayer() {
     PLAYER.style.left = player_left + 'px';
 
     const ctx = CANVAS.getContext("2d")
-    ctx.clearRect(0, 0, CANVAS.width, CANVAS.width)
+    ctx.clearRect(0, 0, CANVAS.width, CANVAS.height)
 
     drawRays(player_top, player_left);
+
+    // --- POPUP & REDIRECT LOGIC ---
+    if (!hasRedirected) {
+        obstacle_list.forEach((obs) => {
+            const wallType = obs.dataset.type;
+            
+            if (PORTALS_CONFIG[wallType]) {
+                const obsRect = obs.getBoundingClientRect();
+                
+                const playerCenterX = player_left + PLAYER.offsetWidth / 2;
+                const playerCenterY = player_top + PLAYER.offsetHeight / 2;
+                const obsCenterX = obsRect.left + obsRect.width / 2;
+                const obsCenterY = obsRect.top + obsRect.height / 2;
+
+                const distance = Math.sqrt(
+                    Math.pow(playerCenterX - obsCenterX, 2) + 
+                    Math.pow(playerCenterY - obsCenterY, 2)
+                );
+
+                if (distance < 50) {
+                    hasRedirected = true; 
+                    
+                    const portal = PORTALS_CONFIG[wallType];
+                    const userConfirmed = confirm(`Do you want to enter ${portal.label}?\nDestination: ${portal.description}`);
+                    if (userConfirmed) {
+                        window.location.href = portal.url;
+                    } else {
+                        setTimeout(() => { hasRedirected = false; }, 2000);
+                    }
+                }
+            }
+        });
+    }
 
     requestAnimationFrame(movePlayer);
 }
 
-
 function drawRays(player_top, player_left) {
-    const playerCenterX = player_left + player.offsetWidth / 2;
-    const playerCenterY = player_top + player.offsetHeight / 2;
+    const playerCenterX = player_left + PLAYER.offsetWidth / 2;
+    const playerCenterY = player_top + PLAYER.offsetHeight / 2;
 
     const ctx = CANVAS.getContext("2d")
 
     ctx.beginPath();
-
     ctx.strokeStyle = "red"
     ctx.lineWidth = 1
 
@@ -196,14 +306,16 @@ function drawToMap(closestIntersection, ctx) {
 
 function drawTo3d(closestIntersection, playerCenterX, playerCenterY, ctx, i) {
     const distance = Math.sqrt(Math.pow(closestIntersection.x - playerCenterX, 2) + Math.pow(closestIntersection.y - playerCenterY, 2));
-
     const correctedDistance = distance * Math.cos(rayAngle - player_angle);
-
     const sliceHeight = Math.min((MAX_VIEW_DISTANCE * 75) / correctedDistance, MAX_VIEW_DISTANCE);
-
     const shade = Math.max(50, 255 - (correctedDistance / MAX_VIEW_DISTANCE) * 255);
 
-    const wallColor = `rgb(${(wallBaseColor.r * shade) / 255}, ${(wallBaseColor.g * shade) / 255}, ${(wallBaseColor.b * shade) / 255})`;
+    let baseColor = wallBaseColor;
+    if (PORTALS_CONFIG[closestIntersection.type]) {
+        baseColor = PORTALS_CONFIG[closestIntersection.type].color;
+    }
+
+    const wallColor = `rgb(${(baseColor.r * shade) / 255}, ${(baseColor.g * shade) / 255}, ${(baseColor.b * shade) / 255})`;
 
     ctx.fillStyle = wallColor;
     ctx.fillRect(i * (VIEW_CANVAS.width / RAYS_COUNT) + MAP_CONTAINER.getBoundingClientRect().width, (VIEW_CANVAS.height - sliceHeight) / 2, VIEW_CANVAS.width / RAYS_COUNT, sliceHeight);
@@ -241,7 +353,11 @@ function findClosestIntersection(playerX, playerY) {
                 const distance = Math.sqrt(Math.pow(intersection.x - playerX, 2) + Math.pow(intersection.y - playerY, 2));
                 if (distance < minDistance) {
                     minDistance = distance;
-                    closestIntersection = intersection;
+                    closestIntersection = {
+                        x: intersection.x,
+                        y: intersection.y,
+                        type: obstacle.dataset.type 
+                    };
                 }
             }
         });
@@ -275,4 +391,4 @@ function resizeCanvas() {
 }
 
 requestAnimationFrame(movePlayer);
-setup()
+setup();
